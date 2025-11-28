@@ -26,7 +26,7 @@ A simple, lightweight Business Accounting Cashbook application built with PHP. I
 2.  **Installation**:
     - Clone this repository or copy the files to your web server's root directory (e.g., `htdocs` in XAMPP).
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/wildshark/cashbook.git
     ```
 
 3.  **Permissions**:
