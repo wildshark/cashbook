@@ -1,0 +1,63 @@
+/* Custom Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca) !important;
+}
+
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    /* transform: translateY(-2px); */
+}
+
+.table th {
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+.badge-income {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    padding: 0.5em 0.8em;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.badge-expense {
+    background-color: #f8d7da;
+    color: #842029;
+    padding: 0.5em 0.8em;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* Smooth transitions */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
