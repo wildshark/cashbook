@@ -1,2 +1,3 @@
-id,date,description,type,amount
-6928e4c57ad23,2025-11-27,sdasdas,income,400
+id,date,description,type,amount,payee,authorized_by
+6928ff6d0f413,2025-11-28,Andfsd,expense,60,,
+6928ff7fb67e1,2025-11-28,Andfsd,income,5000,,

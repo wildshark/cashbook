@@ -45,6 +45,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set default date to today
     document.getElementById('t-date').valueAsDate = new Date();
+    document.getElementById('pc-date').valueAsDate = new Date();
+
+    // Petty Cash Form Handler
+    document.getElementById('petty-cash-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const data = {
+            date: document.getElementById('pc-date').value,
+            payee: document.getElementById('pc-payee').value,
+            description: document.getElementById('pc-desc').value,
+            amount: document.getElementById('pc-amount').value,
+            authorized_by: document.getElementById('pc-auth').value,
+            type: 'expense' // Petty cash is always an expense
+        };
+
+        try {
+            const response = await fetch('api.php?action=add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                e.target.reset();
+                document.getElementById('pc-date').valueAsDate = new Date();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('pettyCashModal'));
+                modal.hide();
+                loadTransactions();
+                showToast('Voucher created successfully!');
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to create voucher.');
+        }
+    });
 });
 
 async function loadTransactions() {
@@ -86,6 +125,10 @@ function renderTable(transactions) {
             <td><span class="${badgeClass}">${capitalize(t.type)}</span></td>
             <td class="text-end fw-bold ${amountClass}">${sign}$${parseFloat(t.amount).toFixed(2)}</td>
             <td class="text-end pe-4">
+                ${t.payee ? `
+                <button class="btn btn-sm btn-outline-info border-0 me-1" onclick="viewVoucher('${t.id}')" title="View Voucher">
+                    <i class="bi bi-eye"></i>
+                </button>` : ''}
                 <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteTransaction('${t.id}')" title="Delete">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -98,6 +141,7 @@ function renderTable(transactions) {
 function calculateStats(transactions) {
     let income = 0;
     let expense = 0;
+    let pettyTotal = 0;
 
     transactions.forEach(t => {
         const amount = parseFloat(t.amount);
@@ -106,12 +150,17 @@ function calculateStats(transactions) {
         } else {
             expense += amount;
         }
+
+        if (t.source === 'petty') {
+            pettyTotal += amount;
+        }
     });
 
     const balance = income - expense;
 
     animateValue('total-income', income);
     animateValue('total-expense', expense);
+    animateValue('total-petty', pettyTotal);
     animateValue('current-balance', balance, true);
 }
 
@@ -170,4 +219,69 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Global transactions cache for viewing
+let currentTransactions = [];
+
+// Update loadTransactions to cache data
+const originalLoadTransactions = loadTransactions;
+loadTransactions = async function () {
+    try {
+        const response = await fetch('api.php?action=list');
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            currentTransactions = result.data;
+            renderTable(result.data);
+            calculateStats(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+        document.getElementById('transaction-list').innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load data.</td></tr>';
+    }
+};
+
+function viewVoucher(id) {
+    const t = currentTransactions.find(x => x.id === id);
+    if (!t) return;
+
+    document.getElementById('v-id').textContent = t.id;
+    document.getElementById('v-date').textContent = formatDate(t.date);
+    document.getElementById('v-payee').textContent = t.payee || '-';
+    document.getElementById('v-desc').textContent = t.description;
+    document.getElementById('v-amount').textContent = '$' + parseFloat(t.amount).toFixed(2);
+    document.getElementById('v-auth').textContent = t.authorized_by || '-';
+
+    const modal = new bootstrap.Modal(document.getElementById('viewVoucherModal'));
+    modal.show();
+}
+
+async function deleteAllData() {
+    if (!confirm('⚠️ WARNING: This will permanently delete ALL transactions and petty cash data. This action cannot be undone. Are you sure?')) {
+        return;
+    }
+
+    if (!confirm('Final confirmation: Delete ALL data?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('api.php?action=delete_all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            loadTransactions();
+            showToast('All data deleted successfully.');
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to delete data.');
+    }
 }

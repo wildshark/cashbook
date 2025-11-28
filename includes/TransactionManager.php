@@ -14,7 +14,7 @@ class TransactionManager {
             // Create file with headers if it doesn't exist
             $file = fopen($this->filepath, 'w');
             if ($file) {
-                fputcsv($file, ['id', 'date', 'description', 'type', 'amount']);
+                fputcsv($file, ['id', 'date', 'description', 'type', 'amount', 'payee', 'authorized_by']);
                 fclose($file);
             }
         }
@@ -33,7 +33,9 @@ class TransactionManager {
                         'date' => $data[1],
                         'description' => $data[2],
                         'type' => $data[3],
-                        'amount' => (float)$data[4]
+                        'amount' => (float)$data[4],
+                        'payee' => $data[5] ?? '',
+                        'authorized_by' => $data[6] ?? ''
                     ];
                 }
             }
@@ -43,13 +45,13 @@ class TransactionManager {
         return array_reverse($transactions);
     }
 
-    public function add($date, $description, $type, $amount) {
+    public function add($date, $description, $type, $amount, $payee = '', $authorized_by = '') {
         // Simple ID generation: timestamp + random
         $id = uniqid();
         $file = fopen($this->filepath, 'a');
         // Lock file for writing
         if (flock($file, LOCK_EX)) {
-            fputcsv($file, [$id, $date, $description, $type, $amount]);
+            fputcsv($file, [$id, $date, $description, $type, $amount, $payee, $authorized_by]);
             flock($file, LOCK_UN);
         }
         fclose($file);
